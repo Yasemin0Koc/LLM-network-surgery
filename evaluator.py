@@ -1,4 +1,4 @@
-"""post-hoc batch evaluator — this is optimization #1, the big one.
+"""post-hoc batch evaluator - this is optimization #1.
 
 old pipeline: evaluator ran INSIDE the simulation loop after every single
 shared message. the problem is evaluator uses qwen and agents use llama, so
