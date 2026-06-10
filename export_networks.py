@@ -42,7 +42,7 @@ import config
 
 SNAPSHOT_TIMESTEPS = [0, 4, 5, 14]
 
-# node colors — keep these consistent with the poster
+# node colors - keep these consistent with the poster
 COLOR_SEED       = "#A32D2D"   # where the rumor started
 COLOR_BELIEVER   = "#E8A838"   # belief >= 0.5
 COLOR_PARTIAL    = "#FAC775"   # 0.3 <= belief < 0.5, believes a bit
