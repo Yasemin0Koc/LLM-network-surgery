@@ -4,13 +4,13 @@ each function takes a graph + agents dict, mutates them in place,
 and returns a log dict describing what it did.
 
 theory behind each one:
-- bridge_removal: granovetter — bridges are the weak ties connecting communities,
+- bridge_removal: granovetter - bridges are the weak ties connecting communities,
   cut them and you slow cross-community spread
-- hub_immunization: epidemic theory — high-degree nodes drive R0, convert the
+- hub_immunization: epidemic theory - high-degree nodes drive R0, convert the
   biggest hub into a fact-checker and watch the cascade slow down
-- community_sealing: modularity — just cut EVERY inter-community edge, more
+- community_sealing: modularity - just cut EVERY inter-community edge, more
   aggressive version of bridge removal basically
-- random_edge_removal: negative control!! same number of edges removed as
+- random_edge_removal: negative control! same number of edges removed as
   bridge_removal but chosen randomly. if bridge_removal doesn't beat this
   then the whole paper falls apart so fingers crossed
 """
@@ -42,7 +42,7 @@ def bridge_removal(graph, agents, fraction=0.1, **kwargs):
 def hub_immunization(graph, agents, k=1, **kwargs):
     """convert the highest-degree node(s) into fact-checkers.
     changes their persona + resets their belief to 0.
-    topology stays the same — they're still connected, just now actively
+    topology stays the same - they're still connected, just now actively
     pushing back on the rumor instead of spreading it.
     """
     sorted_nodes = sorted(graph.nodes(), key=lambda n: -graph.degree(n))
@@ -78,7 +78,7 @@ def random_edge_removal(graph, agents, fraction=0.1, seed=0, **kwargs):
 
 def community_sealing(graph, agents, **kwargs):
     """detect communities and cut ALL edges between them.
-    more aggressive than bridge removal — removes every inter-community edge,
+    more aggressive than bridge removal - removes every inter-community edge,
     not just the high-betweenness ones. basically turns the graph into islands.
     """
     try:
