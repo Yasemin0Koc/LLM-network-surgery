@@ -121,22 +121,6 @@ elapsed_sec       wall-clock time
 
 The metrics in the paper are computed directly from these JSON files, so all reported numbers are reproducible from the logged data without re-running any simulation.
 
-## The paper
-
-The accompanying paper (`paper/main.tex`) documents the pipeline design, the calibration study, the headline findings, and four calibration requirements for a v2 protocol. It is formatted as an IEEE conference submission using `IEEEtran.cls`.
-
-Compile in Overleaf or locally with:
-
-```bash
-cd paper
-pdflatex main.tex
-pdflatex main.tex
-```
-
-Two passes are needed for cross-references to resolve.
-
-The figures expected by `main.tex` are produced by `analyze_results.py` (the three summary charts) and `export_networks.py` (the four before-and-after pairs), plus a hand-drawn system diagram (`system_diagram.pdf`) and a TikZ pipeline strip embedded in the source. All figures live in `paper/figures/`.
-
 ### Key findings
 
 - Across the conditions tested, community sealing was the only intervention to produce a discernible reduction in final cascade size
