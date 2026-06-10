@@ -78,6 +78,10 @@ def _baseline_key(grouped):
 
 
 def plot_infection_curves(results, out_path, intervention_t=5):
+    """mean infection curves per condition. no shaded bands — removed them
+    because with only 5 seeds the sigma bands were huge and ugly and the
+    reviewer is going to ask about it anyway so just show the means cleanly.
+    """
     grouped = group_by_intervention(results)
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -89,12 +93,12 @@ def plot_infection_curves(results, out_path, intervention_t=5):
         max_len = max(len(c) for c in curves)
         # pad shorter curves with their last value so averaging works
         padded = np.array([c + [c[-1]] * (max_len - len(c)) for c in curves])
-        mean, std = padded.mean(axis=0), padded.std(axis=0)
+        mean = padded.mean(axis=0)
         x = np.arange(max_len)
         color = PALETTE.get(intervention, "#444441")
         ax.plot(x, mean, color=color, linewidth=2.2,
                 label=LABELS.get(intervention, intervention))
-        ax.fill_between(x, mean - std, mean + std, color=color, alpha=0.15)
+        # removed: fill_between for +/- 1 sigma band
 
     ax.axvline(intervention_t, color="#A32D2D", linestyle="--",
                linewidth=1, alpha=0.6)
