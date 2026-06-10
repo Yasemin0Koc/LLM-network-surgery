@@ -3,7 +3,7 @@
 these are intentionally varied along axes that should matter for rumor spread:
 skepticism, social centrality, anxiety, contrarianism, etc.
 for a proper study you'd want Big Five scores or something quantifiable so
-you could actually correlate persona traits with spreading behavior — that's
+you could actually correlate persona traits with spreading behavior - that's
 future work if we ever get time.
 """
 
@@ -75,7 +75,7 @@ def assign_personas(n_nodes: int, seed: int = 0) -> list[dict]:
     """assign personas to n nodes, cycling if n > 10.
 
     seeded so the control and an intervention run always have the SAME
-    persona placement — otherwise you're comparing apples and oranges.
+    persona placement - otherwise you're comparing apples and oranges.
     """
     import random
     rng = random.Random(seed)
