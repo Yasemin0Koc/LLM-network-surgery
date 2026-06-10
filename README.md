@@ -1,73 +1,175 @@
-# Network Surgery on LLM Rumor Propagation: A Pilot Study
+# Network Surgery on LLM Rumor Propagation
 
-A controlled, causal-intervention pipeline to test whether classical network-science strategies (like bridge removal or hub immunization) can contain rumor cascades when the spreading nodes are reasoning LLM agents with distinct personas. 
+A controlled causal-intervention pipeline for studying how classical network-theoretic interventions perform when nodes are LLM agents that reason and paraphrase.
 
-This framework transitions multi-agent rumor simulation from purely observational studies to **causal inference**. By running pairs of simulations that are completely identical up until a fixed surgery timestep ($t_s=5$), you can isolate and measure the exact cause-and-effect of structural network interventions on AI-driven misinformation.
+This repository contains the pipeline, the calibration study results, and the LaTeX source for the accompanying paper.
 
----
+**Authors:** Çınar Efe Yetişen (34245), Yasemin Meryem Koç (34440)
+**Course:** CS414 Network Science, Sabancı University
 
-## Pipeline Architecture
+## What this project does
 
-Unlike traditional epidemiological models (e.g., SIR) where agents are uniform, memoryless units with fixed scalar transmission rates, this pipeline replaces nodes with reasoning language models. 
-* **Belief-Sensitive Transmission:** Agents process incoming text, update an internal scalar belief using a weighted average, and decide whether to pass the rumor along based on their assigned persona's skepticism, reactivity, or gossip tendencies.
-* **Semantic Drift:** Rumors naturally mutate as they traverse the network because agents paraphrase messages in their own unique voices.
-* **Dual-Model Safety:** To prevent shared lexical or stylistic biases, one model family acts as the living agents while an entirely distinct model family evaluates the results.
+Classical network science predicts that cutting bridges, immunizing hubs, or sealing communities will contain rumor cascades. These predictions assume stochastic agents with scalar belief states. LLM-driven agents reason, paraphrase, and update beliefs in natural language, which may violate those assumptions.
 
----
+We built a pipeline in which:
 
-## Files
+1. Each node in a synthetic network is an LLM agent with a persona-conditioned system prompt
+2. A rumor is seeded at one node and propagates through belief updates and paraphrasing
+3. At a designated timestep, a network surgery is applied (hub immunization, bridge removal, community sealing, or random edge removal as a structural null)
+4. Post-surgery cascade dynamics are measured and compared against a no-intervention baseline
 
-- `personas.py` — The trait-diverse pool of 10 character profiles used to seed agent behaviors.
-- `graph_builder.py` — Generates deterministic synthetic networks (primarily Watts-Strogatz small-world topologies).
-- `agent.py` — Wraps the local LLM node operations (`RECEIVE` for belief updates and `DECIDE-SHARE` for persona-mediated paraphrasing).
-- `simulation.py` — Manages the 4-phase propagation loop (Seed, Free Spread, Network Surgery, and Post-Op Measurement).
-- `interventions.py` — Implements the 5 mutation operators applied at $t_s$ (None, Hub Immunization, Bridge Removal, Community Sealing, and Random Edge Removal).
-- `evaluator.py` — Handles the batch post-hoc pass to score text for factual preservation and endorsement.
-- `metrics.py` — Computes final cascade size, peak infection, containment index, semantic drift, and endorsement stability.
-- `run_experiment.py` — Orchestrates execution across separate, reproducible command invocations.
-- `config.py` — Central system hyperparameters (temperatures, sharing thresholds, token caps).
+The pipeline supports five conditions, three rumor categories, and arbitrary seeds, with deterministic graph and persona construction so that conditions can be compared causally rather than merely correlationally.
 
----
+## Requirements
 
-## Setup
+**System:**
+- Python 3.10 or later
+- An NVIDIA GPU with at least 8 GB VRAM (the study used a single consumer GPU)
+- [Ollama](https://ollama.com) for local LLM serving
 
-The pipeline is designed to run entirely locally on a single consumer GPU via **Ollama**, eliminating external API fees and ensuring full reproducibility.
-
-```bash
-pip install ollama networkx numpy pandas matplotlib
-ollama pull llama3.1:8b  # The Agent Model
-ollama pull qwen2.5:7b   # The Independent Evaluator Model
+**Python packages:**
+```
+pip install ollama networkx numpy matplotlib sentence-transformers
 ```
 
-> **Performance Note:** Evaluation is handled in a single batch pass *after* the simulation completes. This keeps the agent model resident in GPU memory throughout the active propagation steps, cutting execution time significantly by avoiding constant model swaps.
+**LLM models (pulled via Ollama):**
+```
+ollama pull llama3.1:8b
+ollama pull qwen2.5:7b
+```
 
----
+The agent model and evaluator model are deliberately from different families (Llama vs. Qwen) to avoid in-family stylistic bias when the evaluator scores agent-generated messages.
 
-## Running Experiments
+## Reproducing the study
 
-### 1. Run the MVP (Debug Mode)
-To quickly verify that your local environment, model parsing, and fallback JSON handlers are working properly:
+The full study consists of five experiment commands, one per intervention. Each command takes several hours on a single consumer GPU and writes its own timestamped JSON file in `results/`.
 
 ```bash
-python run_experiment.py --mode mvp
-```
-*Runs a scaled-down 10-node sandbox with 1 rumor category and 3 seeds. Expect it to finish in 10–20 minutes on a modern laptop GPU.*
+# Step 1: compute the shared control (run once, reused by every comparison)
+python run_experiment.py --intervention none
 
-### 2. Run the Full Calibration Study
-To replicate the 75-run benchmark protocol highlighted in the paper (crossing 5 intervention conditions, 3 rumor categories, and 5 random seeds):
+# Step 2: run each surgery
+python run_experiment.py --intervention hub_immunization
+python run_experiment.py --intervention bridge_removal
+python run_experiment.py --intervention community_sealing
+python run_experiment.py --intervention random_edge_removal
+```
+
+The five commands can be run on separate days, different machines, or interrupted and resumed. Each one is independent. As long as `config.py` is not modified between commands, the resulting JSON files are directly comparable because graph construction and persona assignment are deterministic in their seed argument.
+
+For a quick pilot test, add `--mvp` to any command. This uses N = 10, three seeds, and only the mundane rumor.
+
+## Producing figures and tables
+
+After all five intervention commands have completed:
 
 ```bash
-python run_experiment.py --mode full
+python analyze_results.py
 ```
-*Configured for 30-node Watts-Strogatz networks over 15 timesteps with surgery firing at $t=5$. Because this executes thousands of model inferences, plan for a multi-hour to full-day compute budget depending on your hardware.*
 
----
+This globs every `results/results_*.json` file, merges them, and writes:
 
-## Key Baseline Findings
+- `figures/infection_curves.png`
+- `figures/final_infection_bar.png`
+- `figures/semantic_drift.png`
+- `figures/summary.txt`
 
-If you are expanding on this repository for a **v2 protocol**, keep these empirical regularities from the pilot study in mind:
+For the before-and-after network snapshots used in the paper:
 
-* **The Reality of Reasoning Nodes:** Classic interventions largely fail to contain LLM cascades once they pick up steam. Converting a network hub into a fact-checker does not easily flip the beliefs of neighbors who have already built up prior reinforcement states.
-* **Structural Severance Wins:** **Community Sealing** (cutting all inter-community edges) was the only surgery that reliably restricted final cascade sizes, operating as a strict structural barrier. 
-* **The Bridge Fallacy:** Removing high-betweenness bridges was statistically indistinguishable from cutting random edges, meaning the structural-hole hypothesis did not hold at this pilot scale.
-* **Extreme Persona Sensitivity:** Conspiratorial/unfalsifiable rumors yield highly bimodal cascades. If the initial seed node is assigned a highly skeptical persona, the cascade will completely stall before ever reaching the surgery timestep.
+```bash
+python export_networks.py
+```
+
+This reads the existing result files, replays each surgery onto its corresponding graph (using the seeded reconstruction guaranteed by `graph_builder.py`), and writes both `.gexf` files (for Gephi) and `.png` snapshots at t = 0, 4, 5, and 14. Optional flags: `--seed N`, `--gexf-only`, `--png-only`.
+
+## Configuration
+
+All experiment knobs live in `config.py`. The defaults match the calibration study reported in the paper:
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `N_NODES` | 30 | Network size |
+| `GRAPH_TYPE` | watts_strogatz | Topology family |
+| `WS_K`, `WS_P` | 4, 0.2 | Mean degree, rewiring probability |
+| `N_TIMESTEPS` | 15 | Simulation length |
+| `INTERVENTION_TIMESTEP` | 5 | When surgery is applied |
+| `N_SEEDS` | 5 | Number of random seeds per condition |
+| `TEMPERATURE` | 0.8 | LLM sampling temperature |
+| `BELIEF_SHARE_THRESHOLD` | 0.3 | Minimum belief to consider sharing |
+| `BELIEF_SATURATION` | 0.85 | Above this, skip belief-update LLM call |
+| `MAX_TOKENS_BELIEF` | 10 | Tokens cap on belief-score calls |
+| `MAX_TOKENS_SHARE` | 90 | Tokens cap on share-decision JSON calls |
+| `MAX_TOKENS_EVAL` | 30 | Tokens cap on evaluator calls |
+
+**Important:** do not modify `config.py` between intervention runs. Persona placement, graph structure, and outcome metrics all depend on these values being identical across the five commands; the comparison validity rests on this.
+
+## Output format
+
+Each run produces a JSON file with one entry per (intervention, rumor, seed) condition. Each entry contains:
+
+```
+condition         intervention name, rumor label, seed, seed node
+pre_graph         structural summary before surgery
+post_graph        structural summary after surgery
+intervention_log  which nodes or edges were affected
+metrics           final cascade size, peak, containment, drift, endorsement
+messages          every message generated, with evaluator scores
+snapshots         per-timestep belief vectors for every node
+belief_calls_skipped  bookkeeping for the saturation optimisation
+elapsed_sec       wall-clock time
+```
+
+The metrics in the paper are computed directly from these JSON files, so all reported numbers are reproducible from the logged data without re-running any simulation.
+
+## The paper
+
+The accompanying paper (`paper/main.tex`) documents the pipeline design, the calibration study, the headline findings, and four calibration requirements for a v2 protocol. It is formatted as an IEEE conference submission using `IEEEtran.cls`.
+
+Compile in Overleaf or locally with:
+
+```bash
+cd paper
+pdflatex main.tex
+pdflatex main.tex
+```
+
+Two passes are needed for cross-references to resolve.
+
+The figures expected by `main.tex` are produced by `analyze_results.py` (the three summary charts) and `export_networks.py` (the four before-and-after pairs), plus a hand-drawn system diagram (`system_diagram.pdf`) and a TikZ pipeline strip embedded in the source. All figures live in `paper/figures/`.
+
+### Key findings
+
+- Across the conditions tested, community sealing was the only intervention to produce a discernible reduction in final cascade size
+- Bridge removal was statistically indistinguishable from random edge removal, though at N = 30 neither surgery actually disconnected the graph, so the test could not fully fire
+- Hub immunization showed complete suppression in some seeds but only because the seed node and the immunization target coincided (a contamination flagged at first mention in Results)
+- Semantic drift remained low and stable (around 13–16%) across all conditions, indicating that LLM agents paraphrase rumors through their personas without substantially mutating the core claim. This is an LLM-specific empirical regularity worth noting independently of any intervention effect.
+
+The paper frames these as calibration results and identifies four requirements for a full v2 protocol: state-triggered surgery timing, enforced seed–hub separation, increased network scale and seed count, and stationary rather than final-timestep outcome measures.
+
+## Speed optimisations
+
+The pipeline applies three speed optimisations documented in the paper:
+
+1. **Post-hoc batch evaluation.** The evaluator runs once after the simulation, not inline. This keeps the agent model resident throughout the run and loads the evaluator exactly once at the end.
+2. **Capped output lengths.** Each call type uses an aggressive `num_predict` ceiling, since generation time scales roughly with tokens produced.
+3. **Saturated-belief skip.** Agents whose belief is already above 0.85 skip the belief-update LLM call on subsequent message receipt.
+
+Together these reduce a single MVP-scale condition from several hours to roughly half an hour, and make the full study feasible on a single consumer GPU over a few days of wall-clock time.
+
+## Limitations
+
+This is a calibration study at N = 30 with five seeds. The paper's findings should be read as calibration results rather than definitive conclusions about LLM-driven cascade dynamics. The most important limitations:
+
+- At N = 30, bridge removal does not actually disconnect the network, so the Granovetter structural-hole hypothesis cannot be directly tested
+- The seed node and the hub-immunization target frequently coincide, confounding the structural hub effect with the direct effect of neutralizing the rumor's origin
+- The containment index is unstable when pre-surgery cascade sizes are small; stationary outcome measures would be more robust
+- Persona assignment is a primary determinant of whether a cascade forms at all, and five seeds is not enough to average over this effect
+- Evaluator reliability on Turkish-inflected agent outputs has not been independently validated
+
+Section VII of the paper discusses each of these in detail.
+
+## License and citation
+
+This is a course project. If you build on the pipeline, please cite the paper. The code is released under no specific license; copy or adapt as useful for your own research.
+
+For questions, contact `cinar.yetisen@sabanciuniv.edu` or `yasemin.koc@sabanciuniv.edu`.
