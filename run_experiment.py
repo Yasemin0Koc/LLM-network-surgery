@@ -16,7 +16,7 @@ runs are never lost or overwritten.
 
 optional flags:
     --mvp        small pilot params (N=10, 1 rumor, 3 seeds) for sanity checks
-    --rumors     comma-separated subset, e.g. --rumors mundane,consequential
+    --rumors     comma-separated subset
 """
 
 import argparse
@@ -104,7 +104,7 @@ def run_experiment(intervention_name, mvp=False, rumor_subset=None):
     os.makedirs(config.RESULTS_DIR, exist_ok=True)
 
     if mvp:
-        # quick pilot — use this to check nothing is broken before a real run
+        # quick pilot - use this to check nothing is broken before a real run
         config.N_NODES = 10
         config.N_SEEDS = 3
         rumors_to_test = ["mundane"]
