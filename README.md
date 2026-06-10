@@ -2,7 +2,7 @@
 
 A controlled causal-intervention pipeline for studying how classical network-theoretic interventions perform when nodes are LLM agents that reason and paraphrase.
 
-This repository contains the pipeline, the calibration study results, and the LaTeX source for the accompanying paper.
+This repository contains the pipeline and the calibration study results.
 
 **Authors:** Çınar Efe Yetişen (34245), Yasemin Meryem Koç (34440)
 **Course:** CS414 Network Science, Sabancı University
