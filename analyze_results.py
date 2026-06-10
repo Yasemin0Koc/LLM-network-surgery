@@ -7,10 +7,10 @@ there and run this.
 the `none` runs are the control for everything else.
 
 spits out:
-  figures/infection_curves.png      <- the main one, goes on the poster
-  figures/final_infection_bar.png   <- bar chart, easier to explain in 3min
-  figures/semantic_drift.png        <- supplementary, for the paper version
-  figures/summary.txt               <- numbers with % reductions vs control
+  figures/infection_curves.png      - the main one, goes on the poster
+  figures/final_infection_bar.png   - bar chart, easier to explain in 3min
+  figures/semantic_drift.png        - supplementary, for the paper version
+  figures/summary.txt               - numbers with % reductions vs control
 
 usage:
     python analyze_results.py            # just run it
@@ -26,7 +26,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# colors stolen from the poster palette — don't change these or the figures
+# colors stolen from the poster palette - don't change these or the figures
 # won't match the network visualizations
 PALETTE = {
     "none": "#A32D2D", "no_intervention": "#A32D2D",
@@ -146,7 +146,7 @@ def plot_final_infection_bar(results, out_path):
 
 
 def plot_semantic_drift(results, out_path):
-    # how much does the rumor mutate before vs after surgery?
+    # how much does the rumor mutate before vs after surgery
     grouped = group_by_intervention(results)
     interventions = list(grouped.keys())
     pre = [np.mean([r["metrics"].get("semantic_drift_pre", 0) for r in grouped[i]])
@@ -205,7 +205,7 @@ def write_summary(results, out_path):
             lines.append(f"  {LABELS.get(intervention, intervention):<22} "
                          f"{reduction:+5.1f}%")
     else:
-        # you forgot to run the control lol
+        # you forgot to run the control
         lines += ["", "[!] No 'none' control found - run "
                   "`python run_experiment.py --intervention none`"]
 
