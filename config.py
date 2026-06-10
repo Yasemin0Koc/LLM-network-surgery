@@ -29,7 +29,7 @@ INITIAL_INFECTED = 1
 # belief dynamics
 BELIEF_SHARE_THRESHOLD = 0.3     # only share if you believe it above this
 BELIEF_SATURATION = 0.85         # opt #5: skip llm call if already basically
-                                 # certain — saves a ton of calls late in runs
+                                 # certain - saves a ton of calls late in runs
 
 # embedding model for semantic drift
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
