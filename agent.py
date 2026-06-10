@@ -3,10 +3,10 @@
 optimizations in here:
 - #4: cap output tokens on every llm call (see config.MAX_TOKENS_*)
 - #5: receive() skips the belief update llm call when belief is already high
-      (above config.BELIEF_SATURATION) — re-hearing something you already
+      (above config.BELIEF_SATURATION) - rehearing something you already
       believe 90% doesn't really change anything so why waste the call
 
-NOTE: agent doesn't call the evaluator anymore!! messages are stored raw and
+NOTE: agent doesn't call the evaluator anymore! messages are stored raw and
 evaluation happens in one big batch after the whole simulation finishes.
 this was optimization #1 and it saved like hours. see evaluator.py + simulation.py
 """
@@ -37,7 +37,7 @@ class Agent:
         )
 
     def _call_llm(self, user_prompt: str, max_tokens: int) -> str:
-        """one ollama call. that's it."""
+        """one ollama call"""
         client = ollama.Client(host=config.OLLAMA_HOST)
         try:
             resp = client.chat(
