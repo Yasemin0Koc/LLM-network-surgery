@@ -2,7 +2,7 @@
 
 IMPORTANT: build_graph is seeded. same seed = same graph every time.
 this is the whole reason the `none` control and an intervention run are
-comparable — at seed 0 they're operating on the exact same network, so
+comparable - at seed 0 they're operating on the exact same network, so
 the only thing that differs between conditions is the surgery itself.
 mess with the seed and you're comparing different graphs, which is wrong.
 """
@@ -23,7 +23,7 @@ def build_graph(n: int = None, graph_type: str = None, seed: int = 0) -> nx.Grap
         raise ValueError(f"Unknown graph_type: {graph_type}")
 
     # WS occasionally generates disconnected components with low p.
-    # just stitch them together with a single edge — not realistic but
+    # just stitch them together with a single edge - not realistic but
     # an isolated node that never hears anything is more annoying to deal with
     if not nx.is_connected(g):
         components = list(nx.connected_components(g))
@@ -36,7 +36,7 @@ def build_graph(n: int = None, graph_type: str = None, seed: int = 0) -> nx.Grap
 
 
 def graph_summary(g: nx.Graph) -> dict:
-    """structural snapshot — gets logged with each experiment run.
+    """structural snapshot - gets logged with each experiment run.
     useful for sanity checking that pre/post surgery graphs look right.
     """
     summary = {
